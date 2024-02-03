@@ -155,24 +155,45 @@ class MessagePanel{
         messagePanelContainer.className = 'message-panel';
 
         messagePanelContainer.innerHTML = `
-        
-                <div class="test"></div>
+
+                <div class="dragger">\u2630</div>
+                <div class="container">
+                    <div class="item"></div>
+                    <div class="item"></div>
+                    <div class="item"></div>
+                </div>
         
         `;
 
-        messagePanelContainer.addEventListener('click',()=>{
-            if(messagePanelContainer.classList.contains('expanded')){
-                this.expand(messagePanelContainer,'200px');
-                messagePanelContainer.classList.remove('expanded');
-            } else {
-                messagePanelContainer.style.width = '100px';
-                messagePanelContainer.classList.add('expanded');
-            }
-        });
-
-        this.playerContainer.append(messagePanelContainer);
+        document.body.append(messagePanelContainer);
+        this.makeDraggable(messagePanelContainer);
     }
 
+    makeDraggable(el){
+        let isDragging = false;
+        let offsetX, offsetY;
+        el.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            offsetX = e.clientX - el.getBoundingClientRect().left;
+            offsetY = e.clientY - el.getBoundingClientRect().top;
+            el.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+
+            const x = e.clientX - offsetX;
+            const y = e.clientY - offsetY;
+
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            el.style.cursor = 'grab';
+        });
+    }
 
     expand(el,width){
         el.style.width = width;
