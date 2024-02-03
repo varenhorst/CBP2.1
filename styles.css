@@ -1,0 +1,67 @@
+
+
+.ytp-extension-controls{
+    width: 60px;
+}
+
+.plus-icon{
+    text-align: center;
+    font-size: 14px;
+    height: 24px;
+    width: 24px;
+    line-height: 24px;
+    background-color: whitesmoke;
+    position: relative;
+    top: 50%;
+    transform:translate(0,-50%);
+    border-radius: 50%;
+}
+
+.marker{
+    width: 2px;
+    height: 5px;
+    position: absolute;
+    background-color: white;
+}
+
+.message-panel{
+    position: absolute;
+    background: white;
+    height: auto;
+    width: 35px;
+    background: rgba(0,0,0,.5);
+    top: 5%;
+    right: 10px;
+    border: 1px solid white;
+    transition: width .5s ease;
+}
+
+
+.message-panel > .container{
+    height: 100%;
+    position: relative;
+    z-index: 10;
+    cursor: pointer;
+    /* background: black; */
+    width: 90%;
+    margin: auto;
+    display: flex;
+    justify-content: space-evenly;
+    flex-direction: column;
+    gap: 5px;
+}
+
+
+
+.message-panel > .container > .item {
+    width: 30px;
+    height: 30px;
+    background: black;
+}
+
+
+.message-panel > .container > .item:hover {
+    width: 30px;
+    height: 30px;
+    background: whitesmoke;
+}
