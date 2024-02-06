@@ -24,44 +24,123 @@
     background-color: white;
 }
 
-.message-panel{
-    position: absolute;
-    background: white;
+
+.tool-container{
+    width: auto;
     height: auto;
-    width: 35px;
-    background: rgba(0,0,0,.5);
-    top: 5%;
-    right: 10px;
-    border: 1px solid white;
-    transition: width .5s ease;
-}
-
-
-.message-panel > .container{
-    height: 100%;
-    position: relative;
-    z-index: 10;
-    cursor: pointer;
-    /* background: black; */
-    width: 90%;
-    margin: auto;
+    top: 100px;
+    position: fixed;
     display: flex;
-    justify-content: space-evenly;
-    flex-direction: column;
-    gap: 5px;
+}
+
+[data-tab-content] {
+    display: none;
+}
+
+.active[data-tab-content] {
+    display: block; 
+}
+
+body {
+    padding: 0;
+    margin: 0;
 }
 
 
-
-.message-panel > .container > .item {
-    width: 30px;
-    height: 30px;
-    background: black;
+.message-panel-container {
+    display: flex;
+    background-color: white;
+    z-index: 10;
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+    border: 1px solid #CCC;
+    overflow: hidden;
 }
 
+.message-panel-container > .tabs {
+    display: flex;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    flex-direction:column;
+    width: 75px;
+    text-align: center;
+    width: 45px;
+    height: auto;
+}
 
-.message-panel > .container > .item:hover {
-    width: 30px;
-    height: 30px;
-    background: whitesmoke;
+.grabber{
+    user-select: none;
+}
+
+.grabber > img{
+    width: 40%;
+    transform: rotate(90deg);
+    user-select: none;
+    user-drag: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.grabber > img:hover{
+    color:lightgrey;
+}
+
+.tab {
+    cursor: pointer;
+    padding: 5px;
+    height: 45px;
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid #CCC;
+}
+
+.tab > img {
+    width: 50%;
+    user-select: none;
+    user-drag: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.tab.active {
+    background-color: #CCC;
+}
+
+.tab:hover {
+    background-color: #AAA;
+}
+
+.tab-content {
+    background-color: #CCC;
+    max-width: 100px;
+}
+  
+
+
+.marker-top > img{
+    width: 20px;
+    height: 20px;
+}
+  
+  
+  
+  
+  
+  
+  
+
+
+.triangle{
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 20px solid #1b89d3;
+    top: -18px;
+    position: relative;
+    /* left: -17px; */
+    z-index: 10000000;
 }

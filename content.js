@@ -1,9 +1,11 @@
 //Content.js => Logic for page
 
 
+
 class Content{
     constructor(){
         this.url = window.location.href;
+        this.instance = null;
 
         this.initNewSettings(this.url);
         this.listenForLocationChange();
@@ -20,26 +22,26 @@ class Content{
         this.url = url;
 
         if(url.includes('youtube')){
-            let youtubeInstance = new YoutubeInstance();
+            if(!this.instance){
+                this.instance = new YoutubeInstance();
+            } else {
+                this.instance.update();
+            }
         }
     }
 }
 
 
-class YoutubeInstance{
+class YoutubeInstance {
     constructor(){
-        this.videoElement = document.querySelector('.html5-video-container video');
-        this.progressBar = document.querySelector('.ytp-progress-bar');
-        this.controlsContainer = document.querySelector('.ytp-left-controls');
-        this.player = document.querySelector('#player');
+        this.setElements();
 
         if(!this.progressBar || !this.videoElement || !this.controlsContainer){
             console.log('No Elements for Extension');
             return;
         } else {
             this.setupEvents();
-            this.placeButtons();
-            new MessagePanel(this.player);
+            this.messagePanel = new MessagePanel(this,this.player);
 
             // this.fetchVideo().then((data)=>{
             //     this.setupVideo(data);
@@ -48,6 +50,19 @@ class YoutubeInstance{
             //     console.log('Can not initialze extension. Request to server failed.');
             // });
         }
+    }
+
+    setElements(){
+        this.videoElement = document.querySelector('.html5-video-container video');
+        this.progressBar = document.querySelector('.ytp-progress-bar');
+        this.controlsContainer = document.querySelector('.ytp-left-controls');
+        this.player = document.querySelector('#player');
+    }
+
+
+    update(){
+        //update other things/
+        this.setElements();
     }
 
 
@@ -75,49 +90,6 @@ class YoutubeInstance{
     //     });
     // }
 
-    placeButtons(){
-         // Check if the controls container exists
-        if (this.controlsContainer) {
-
-            let extensionControlsDiv = document.querySelector('.ytp-extension-controls');
-            
-            if(!extensionControlsDiv){
-                // Create a new div for the extension controls
-                extensionControlsDiv = document.createElement('div');
-                extensionControlsDiv.className = 'ytp-extension-controls';
-            } else {
-                extensionControlsDiv.innerHTML = "";
-            }
-
-            // Create a plus icon element (you may need to replace this with your desired icon)
-            let plusIcon = document.createElement('div');
-            plusIcon.className = 'plus-icon'; // You can customize this class for styling
-            plusIcon.innerHTML = '&#x2795;'; // You can replace this with an actual icon or use an <img> tag
-            
-            // Append the plus icon to the extension controls div
-            extensionControlsDiv.appendChild(plusIcon);
-            this.controlsContainer.appendChild(extensionControlsDiv);
-
-
-            plusIcon.addEventListener('click',()=>{
-                this.placeMarker(this.videoElement.currentTime);
-            });
-        }
-    }
-
-    placeMarker(currentTime){
-        let leftPercentage = this.convertTimeToPercent(currentTime);
-
-        let marker = document.createElement('div');
-        marker.className = 'marker';
-        marker.style.left = leftPercentage + '%';
-
-
-        console.log(leftPercentage);
-
-        this.progressBar.appendChild(marker);
-    }
-
     setupEvents(){
         this.progressBar.addEventListener('click',()=>{
             console.log(this.videoElement.currentTime);
@@ -141,10 +113,43 @@ class YoutubeInstance{
 
         return ratio * 100; //convert to percent
     }
+
+    retreiveComments(){
+        let commentElements = document.querySelectorAll('yt-formatted-string.ytd-comment-renderer:not(.cheese-blocked)');
+        let comments = [];
+        
+        var regexPattern = /href=["'](.*?)["']/g;
+        commentElements.forEach((element)=>{
+            element.classList.add('cheese-blocked');
+            if(element.id === 'content-text'){
+                let innerContent = element.innerHTML;
+
+                let matches = innerContent.match(regexPattern);
+            
+                if(matches){
+                    let comment = {};
+                    matches.forEach((match)=>{
+                        let innerMatches = match.match(/t=\d+s/);
+                        
+                        if(innerMatches){
+                            comment.href = match;
+                            comment.text = element.textContent;
+                            comment.time = innerMatches[0].replace('s','').replace('t=','');
+                        }
+
+                        comments.push(comment);
+                    });
+                }
+            }
+        });
+
+        console.log(comments);
+    }
 }
 
 class MessagePanel{
-    constructor(playerContainer,data=null){
+    constructor(Content, playerContainer,data=null){
+        this.content = Content;
         this.playerContainer = playerContainer;
         this.data = data;
         this.render();
@@ -152,51 +157,140 @@ class MessagePanel{
 
     render(){
         let messagePanelContainer = document.createElement('div');
-        messagePanelContainer.className = 'message-panel';
+        messagePanelContainer.className = 'tool-container';
 
         messagePanelContainer.innerHTML = `
-
-                <div class="dragger">\u2630</div>
-                <div class="container">
-                    <div class="item"></div>
-                    <div class="item"></div>
-                    <div class="item"></div>
+            <div class="message-panel-container">
+                <ul class="tabs">
+                    <div class="grabber"><img alt="grip" src="http://demo.vee24.com/anton/assets/grip-vertical.svg" /></div>
+                    <li data-tab-target="#test1" class="tab" id="test1"><img alt="select" src="https://www.svgrepo.com/show/487899/timeline.svg" /></li>
+                    <li data-tab-target="#pricing" class="tab"><img alt="pointer" src="https://www.svgrepo.com/show/430210/cheese-line.svg" /></li>
+                    <li data-tab-target="#about" class="tab"><img alt="arrow" src="https://www.svgrepo.com/show/460711/chat-alt.svg" /></li>
+                </ul>
+                <div class="tab-content">
+                    <div id="test1" data-tab-content>
+                        <h1>Test</h1>
+                        <p>TestTestTestTestTestTestTestTestTestTest</p>
+                    </div>
+                    <div id="pricing" data-tab-content>
+                        <h1>Test</h1>
+                        <p>Some TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest on pricing</p>
+                    </div>
+                    <div id="about" data-tab-content>
+                        <h1>Test</h1>
+                        <p>Let me TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest you about me</p>
+                    </div>
                 </div>
-        
+            </div>
         `;
 
         document.body.append(messagePanelContainer);
-        this.makeDraggable(messagePanelContainer);
+
+        let test1 = document.querySelector('#test1');
+        test1.addEventListener('click',()=>{
+            this.placeMarkers(this.content.videoElement.currentTime);
+        });
+        
+        this.setupTabs();
+        this.makeDraggable(document.querySelector('.grabber'),messagePanelContainer, this.content.videoElement,10);
     }
 
-    makeDraggable(el){
+
+    //Chat
+    //Fetch Chat, show messages, refresh option
+
+
+    //redo?
+    setupTabs(){
+        const tabs = document.querySelectorAll('[data-tab-target]')
+        const tabContents = document.querySelectorAll('[data-tab-content]')
+        
+        let activeTab = null;
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = document.querySelector(tab.dataset.tabTarget);
+                tabContents.forEach(tabContent => {
+                    tabContent.classList.remove('active')
+                })
+                tabs.forEach(tab => {
+                    tab.classList.remove('active')
+                });
+                
+                if (activeTab === target) {
+                    activeTab = null;
+                } else {
+                    tab.classList.add('active');
+                    target.classList.add('active');
+                    activeTab = target;
+                }
+            })
+        });
+    }
+
+    makeDraggable(dragger, el, snapElement, snapThreshold) {
         let isDragging = false;
         let offsetX, offsetY;
-        el.addEventListener('mousedown', (e) => {
+        dragger.addEventListener('mousedown', (e) => {
             isDragging = true;
             offsetX = e.clientX - el.getBoundingClientRect().left;
             offsetY = e.clientY - el.getBoundingClientRect().top;
-            el.style.cursor = 'grabbing';
+            dragger.style.cursor = 'grabbing';
         });
-
+    
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
-
+    
             const x = e.clientX - offsetX;
             const y = e.clientY - offsetY;
-
+    
             el.style.left = `${x}px`;
             el.style.top = `${y}px`;
+    
+            // Check if the draggable element should snap
+            if (snapElement) {
+                const snapBounds = snapElement.getBoundingClientRect();
+    
+                // Check if the draggable element should snap to the right edge
+                // if (x + el.offsetWidth >= snapBounds.left - snapThreshold &&
+                //     x + el.offsetWidth <= snapBounds.right + snapThreshold) {
+                //     el.style.left = `${snapBounds.right - el.offsetWidth}px`;
+                // }
+    
+                // Check if the draggable element should snap to the left edge
+                if (x <= snapBounds.right + snapThreshold &&
+                    x >= snapBounds.left - snapThreshold) {
+                    el.style.left = `${snapBounds.left}px`;
+                }
+            }
         });
-
+    
         document.addEventListener('mouseup', () => {
             isDragging = false;
-            el.style.cursor = 'grab';
+            dragger.style.cursor = 'grab';
         });
     }
 
-    expand(el,width){
-        el.style.width = width;
+    placeMarkers(currentTime){
+        let leftPercentage = this.content.convertTimeToPercent(currentTime);
+
+        let marker1 = document.createElement('div');
+        marker1.className = 'marker';
+        marker1.style.left = leftPercentage + '%';
+
+        let marker2 = document.createElement('div');
+        marker2.className = 'marker';
+        marker2.style.left = leftPercentage + 10 + '%';
+
+        let markerHTML =  `
+            <div class="marker-top"></div> 
+            <div class="marker-line"></div>
+            `;   
+        
+        marker1.innerHTML = markerHTML;
+        marker2.innerHTML = markerHTML;
+
+        this.content.progressBar.appendChild(marker1);
+        this.content.progressBar.appendChild(marker2);
     }
 
 }
