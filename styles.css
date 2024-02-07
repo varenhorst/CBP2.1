@@ -17,14 +17,6 @@
     border-radius: 50%;
 }
 
-.marker{
-    width: 2px;
-    height: 5px;
-    position: absolute;
-    background-color: white;
-}
-
-
 .tool-container{
     width: auto;
     height: auto;
@@ -120,20 +112,32 @@ body {
   
 
 
-.marker-top > img{
-    width: 20px;
+.marker{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    height: auto;
+    align-items: center;
+    position: absolute;
+    background: white;
+    bottom: 35px;
+    width: 4px;
+}
+
+.marker-top > span{
+    font-size: large;
+    bottom: 35px;
+    position: relative;
+    right: 5px;
+}
+
+.marker-line{
+    width: 6px;
     height: 20px;
 }
   
-  
-  
-  
-  
-  
-  
-
-
-.triangle{
+    
+.triangle {
     width: 0;
     height: 0;
     border-left: 20px solid transparent;
@@ -142,5 +146,21 @@ body {
     top: -18px;
     position: relative;
     /* left: -17px; */
-    z-index: 10000000;
+    z-index: 100;
+}
+
+
+.timestamp-container{
+  background:#CCC;
+}
+
+
+.message-container{
+  display:flex;
+  padding:10px;
+  gap:10px;
+}
+
+.time-ref{
+  margin-right:10px;
 }

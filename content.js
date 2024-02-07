@@ -1,6 +1,8 @@
 //Content.js => Logic for page
 
 
+//TEST CASE Multiple Comments in videos.
+
 
 class Content{
     constructor(){
@@ -42,13 +44,6 @@ class YoutubeInstance {
         } else {
             this.setupEvents();
             this.messagePanel = new MessagePanel(this,this.player);
-
-            // this.fetchVideo().then((data)=>{
-            //     this.setupVideo(data);
-            //     new MessagePanel(this.player);
-            // }).catch(()=>{
-            //     console.log('Can not initialze extension. Request to server failed.');
-            // });
         }
     }
 
@@ -153,6 +148,8 @@ class MessagePanel{
         this.playerContainer = playerContainer;
         this.data = data;
         this.render();
+
+        this.markerCounter = 0;
     }
 
     render(){
@@ -165,7 +162,7 @@ class MessagePanel{
                     <div class="grabber"><img alt="grip" src="http://demo.vee24.com/anton/assets/grip-vertical.svg" /></div>
                     <li data-tab-target="#test1" class="tab" id="test1"><img alt="select" src="https://www.svgrepo.com/show/487899/timeline.svg" /></li>
                     <li data-tab-target="#pricing" class="tab"><img alt="pointer" src="https://www.svgrepo.com/show/430210/cheese-line.svg" /></li>
-                    <li data-tab-target="#about" class="tab"><img alt="arrow" src="https://www.svgrepo.com/show/460711/chat-alt.svg" /></li>
+                    <li data-tab-target="#timesPanel" class="tab" id="timesTab"><img alt="times" src="https://www.svgrepo.com/show/460711/chat-alt.svg" /></li>
                 </ul>
                 <div class="tab-content">
                     <div id="test1" data-tab-content>
@@ -176,9 +173,12 @@ class MessagePanel{
                         <h1>Test</h1>
                         <p>Some TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest on pricing</p>
                     </div>
-                    <div id="about" data-tab-content>
-                        <h1>Test</h1>
-                        <p>Let me TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest you about me</p>
+                    <div id="timesPanel" data-tab-content>
+                        <h1>Timestamps</h1>
+                        <div id="timestamps">
+                            <!-- Comments go in here -->
+                            No Timestamps
+                        </div>
                     </div>
                 </div>
             </div>
@@ -186,21 +186,43 @@ class MessagePanel{
 
         document.body.append(messagePanelContainer);
 
-        let test1 = document.querySelector('#test1');
-        test1.addEventListener('click',()=>{
-            this.placeMarkers(this.content.videoElement.currentTime);
+        this.timestampContainer = document.querySelector('#timestamps');
+        this.timestampTab = document.querySelector('#timesTab');
+
+        this.timestampTab.addEventListener('click',()=>{
+            this.updateMessages();
         });
-        
+
         this.setupTabs();
         this.makeDraggable(document.querySelector('.grabber'),messagePanelContainer, this.content.videoElement,10);
     }
 
 
-    //Chat
-    //Fetch Chat, show messages, refresh option
+    updateMessages(){
+        this.timestampContainer.innerHTML = ``;
+
+        let localMessages =  [{'text':'alex is awesome is asd as asd a this is along message. asda idk what thjis asdadf , asdf a.sdf a.sdf a.dfsdf this is along emsas aTEST. 1:21', 'time': 120},{'text':'test 123 1:21 Lex is awesome', 'time': 125}];
+
+        let htmlContent = ``;
+    
+        for(let comment of localMessages){
+            htmlContent += `
+            <div class = "timestamp-container">
+                <div class = "message-container">
+                    <div class="time-ref">
+                        @${comment.time}
+                    </div>
+                    <div class="message">
+                        ${comment.text}
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        this.timestampContainer.innerHTML = htmlContent;
+    }
 
 
-    //redo?
     setupTabs(){
         const tabs = document.querySelectorAll('[data-tab-target]')
         const tabContents = document.querySelectorAll('[data-tab-content]')
@@ -271,6 +293,7 @@ class MessagePanel{
     }
 
     placeMarkers(currentTime){
+        this.markerCounter++;
         let leftPercentage = this.content.convertTimeToPercent(currentTime);
 
         let marker1 = document.createElement('div');
@@ -282,15 +305,43 @@ class MessagePanel{
         marker2.style.left = leftPercentage + 10 + '%';
 
         let markerHTML =  `
-            <div class="marker-top"></div> 
+            <div class="marker-top triangle">
+                <span> ${this.markerCounter} </span>
+            </div> 
             <div class="marker-line"></div>
             `;   
         
         marker1.innerHTML = markerHTML;
         marker2.innerHTML = markerHTML;
 
-        this.content.progressBar.appendChild(marker1);
-        this.content.progressBar.appendChild(marker2);
+        this.content.controlsContainer.appendChild(marker1);
+        this.content.controlsContainer.appendChild(marker2);
+
+        this.makeDraggableX(marker1,this.content.progressBar);
+        this.makeDraggableX(marker2,this.content.progressBar);
+    }
+
+    makeDraggableX(element, container) {
+      var isDragging = false;
+      var containerRect = container.getBoundingClientRect();
+
+      element.addEventListener('mousedown', function(event) {
+        isDragging = true;
+        var offsetX = event.clientX - element.getBoundingClientRect().left;
+        
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', function() {
+          isDragging = false;
+          document.removeEventListener('mousemove', drag);
+        });
+        
+        function drag(event) {
+          var newPosition = event.clientX - containerRect.left - offsetX;
+          var maxPosition = containerRect.width - element.offsetWidth;
+          newPosition = Math.max(0, Math.min(maxPosition, newPosition));
+          element.style.left = newPosition + 'px';
+        }
+      });
     }
 
 }
