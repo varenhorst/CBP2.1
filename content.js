@@ -25,8 +25,10 @@ class Content{
 
         if(url.includes('youtube')){
             if(!this.instance){
+                console.log('creating new instance');
                 this.instance = new YoutubeInstance();
             } else {
+                console.log('updating instance');
                 this.instance.update();
             }
         }
@@ -52,12 +54,19 @@ class YoutubeInstance {
         this.progressBar = document.querySelector('.ytp-progress-bar');
         this.controlsContainer = document.querySelector('.ytp-left-controls');
         this.player = document.querySelector('#player');
+
+        if(!this.progressBar || !this.videoElement || !this.controlsContainer){
+            alert('No elements');
+        }
     }
 
 
     update(){
         //update other things/
         this.setElements();
+        if(this.messagePanel){
+            this.messagePanel.resetMessages();
+        }
     }
 
 
@@ -89,6 +98,20 @@ class YoutubeInstance {
         this.progressBar.addEventListener('click',()=>{
             console.log(this.videoElement.currentTime);
         });
+
+        let lastFiredPosition = 0;
+        document.addEventListener('scroll',()=>{
+            const currentPosition = window.scrollY;
+
+            let nextInterval = lastFiredPosition + 1500;
+            
+            console.log(currentPosition, lastFiredPosition, nextInterval);
+            if (currentPosition > lastFiredPosition && currentPosition >= nextInterval) {
+                lastFiredPosition = nextInterval;
+                this.messagePanel.updateMessages();
+            }
+        });
+
     }
 
     setupVideo(data){
@@ -126,19 +149,48 @@ class YoutubeInstance {
                     matches.forEach((match)=>{
                         let innerMatches = match.match(/t=\d+s/);
                         
-                        if(innerMatches){
+                        if(innerMatches && typeof innerMatches !== 'undefined'){
                             comment.href = match;
                             comment.text = element.textContent;
-                            comment.time = innerMatches[0].replace('s','').replace('t=','');
+                            let secondsFromHref = innerMatches[0].replace('s','').replace('t=','');
+                            comment.time = secondsFromHref;
+                            comment.formattedTime = this.formatSecondsToHHMMSS(secondsFromHref);
                         }
 
-                        comments.push(comment);
+                        if(Object.keys(comment).length !== 0){
+                            comments.push(comment);
+                        }
                     });
                 }
             }
         });
 
-        console.log(comments);
+        return comments;
+    }
+
+    formatSecondsToHHMMSS(secondsString) {
+        // Convert string to number
+        const seconds = parseInt(secondsString);
+    
+        // Calculate hours, minutes, and remaining seconds
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const remainingSeconds = seconds % 60;
+    
+        // Prepare formatted time parts
+        let formattedTimeParts = [];
+    
+        // Add hours part if it's not zero
+        if (hours > 0) {
+            formattedTimeParts.push(hours.toString().padStart(2, '0'));
+        }
+    
+        // Add minutes and seconds parts
+        formattedTimeParts.push(minutes.toString());
+        formattedTimeParts.push(remainingSeconds.toString().padStart(2, '0'));
+    
+        // Join time parts with ":" and return
+        return formattedTimeParts.join(':');
     }
 }
 
@@ -147,6 +199,7 @@ class MessagePanel{
         this.content = Content;
         this.playerContainer = playerContainer;
         this.data = data;
+        this.currentCommentCount = 0;
         this.render();
 
         this.markerCounter = 0;
@@ -161,10 +214,10 @@ class MessagePanel{
                 <ul class="tabs">
                     <div class="grabber"><img alt="grip" src="http://demo.vee24.com/anton/assets/grip-vertical.svg" /></div>
                     <li data-tab-target="#test1" class="tab" id="test1"><img alt="select" src="https://www.svgrepo.com/show/487899/timeline.svg" /></li>
-                    <li data-tab-target="#pricing" class="tab"><img alt="pointer" src="https://www.svgrepo.com/show/430210/cheese-line.svg" /></li>
                     <li data-tab-target="#timesPanel" class="tab" id="timesTab"><img alt="times" src="https://www.svgrepo.com/show/460711/chat-alt.svg" /></li>
                 </ul>
                 <div class="tab-content">
+                    <div id="loader" style="width:100%;height: 100%;background:black;"></div>
                     <div id="test1" data-tab-content>
                         <h1>Test</h1>
                         <p>TestTestTestTestTestTestTestTestTestTest</p>
@@ -174,10 +227,9 @@ class MessagePanel{
                         <p>Some TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest on pricing</p>
                     </div>
                     <div id="timesPanel" data-tab-content>
-                        <h1>Timestamps</h1>
+                        <h3 style="text-align:center">Timestamps</h1>
                         <div id="timestamps">
-                            <!-- Comments go in here -->
-                            No Timestamps
+                            <span id="noTimestamps">No Timestamps</div>
                         </div>
                     </div>
                 </div>
@@ -188,9 +240,18 @@ class MessagePanel{
 
         this.timestampContainer = document.querySelector('#timestamps');
         this.timestampTab = document.querySelector('#timesTab');
+        this.timesPanel = document.querySelector('#timesPanel');
+        this.noTimestamps = document.querySelector('#noTimestamps');
 
         this.timestampTab.addEventListener('click',()=>{
             this.updateMessages();
+        });
+
+        this.timesPanel.addEventListener('click',(e)=>{
+            if(e.target.classList.contains('time-ref')){
+                let goToTime = e.target.getAttribute('data-time');
+                this.content.videoElement.currentTime = goToTime;
+            }
         });
 
         this.setupTabs();
@@ -199,18 +260,19 @@ class MessagePanel{
 
 
     updateMessages(){
-        this.timestampContainer.innerHTML = ``;
-
-        let localMessages =  [{'text':'alex is awesome is asd as asd a this is along message. asda idk what thjis asdadf , asdf a.sdf a.sdf a.dfsdf this is along emsas aTEST. 1:21', 'time': 120},{'text':'test 123 1:21 Lex is awesome', 'time': 125}];
-
+        this.showLoader();
+        let localMessages = this.content.retreiveComments();
+        
         let htmlContent = ``;
     
         for(let comment of localMessages){
+            this.currentCommentCount++;
+            let url = window.location.href + '&t=' + comment.time;
             htmlContent += `
             <div class = "timestamp-container">
                 <div class = "message-container">
-                    <div class="time-ref">
-                        @${comment.time}
+                    <div class="time-ref" data-time=${comment.time}>
+                        ${comment.formattedTime}
                     </div>
                     <div class="message">
                         ${comment.text}
@@ -219,7 +281,38 @@ class MessagePanel{
             </div>`;
         }
 
-        this.timestampContainer.innerHTML = htmlContent;
+        if(this.currentCommentCount == 0){
+            document.getElementById('noTimestamps').style.display = 'block';
+        } else {
+            document.getElementById('noTimestamps').style.display = 'none';
+        }
+
+        this.timestampContainer.innerHTML += htmlContent;
+        this.hideLoader();
+    }
+
+    
+    showLoader() {
+        // Show loader
+        document.getElementById('loader').style.display = 'block';
+    }
+
+    hideLoader() {
+        // Hide loader
+        document.getElementById('loader').style.display = 'none';
+    }
+
+    resetMessages(){
+        this.timestampContainer.innerHTML = `<span id="noTimestamps">No Timestamps</div>`;
+        this.currentCommentCount = 0;
+        document.getElementById('noTimestamps').style.display = 'block';
+
+        let elements = document.querySelectorAll('.cheese-blocked');
+
+
+        elements.forEach(function(element) {
+            element.classList.remove('cheese-blocked');
+        });
     }
 
 
@@ -343,7 +436,6 @@ class MessagePanel{
         }
       });
     }
-
 }
 
 window.onload = () => {
