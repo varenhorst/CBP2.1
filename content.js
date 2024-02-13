@@ -1,7 +1,7 @@
 //Content.js => Logic for page
 
 
-//TEST CASE Multiple Comments in videos.
+//TEST CASE Multiple times in comments.
 
 
 class Content{
@@ -9,8 +9,8 @@ class Content{
         this.url = window.location.href;
         this.instance = null;
 
-        this.initNewSettings(this.url);
-        this.listenForLocationChange();
+        this.initNewSettings(this.url); // check url, and init setting based on this. 
+        this.listenForLocationChange(); // listen for url change (not DOM reload)
     }
 
     listenForLocationChange(){
@@ -39,6 +39,8 @@ class Content{
 class YoutubeInstance {
     constructor(){
         this.setElements();
+        this.isSkipManifest = true;
+        this.skipManifest = [];
 
         if(!this.progressBar || !this.videoElement || !this.controlsContainer){
             console.log('No Elements for Extension');
@@ -95,10 +97,6 @@ class YoutubeInstance {
     // }
 
     setupEvents(){
-        this.progressBar.addEventListener('click',()=>{
-            console.log(this.videoElement.currentTime);
-        });
-
         let lastFiredPosition = 0;
         document.addEventListener('scroll',()=>{
             const currentPosition = window.scrollY;
@@ -112,16 +110,48 @@ class YoutubeInstance {
             }
         });
 
+        let currentTime = 0;
+        this.videoElement.addEventListener('timeupdate',()=>{
+            currentTime = this.videoElement.currentTime;
+        });
+
+
+        this.progressBar.addEventListener('click',()=>{
+            let seekingToTime = this.videoElement.currentTime;
+            
+            this.skipManifest.push({'from':currentTime,'to':seekingToTime});
+        });
     }
 
-    setupVideo(data){
-        // let timeStampData = data['pois']
-        // let messages = data['messages'];
-    }
+    skipFinder(arr,threshold = 5){
+		for(var i = 0; i < arr.length; i++){
+		    if(typeof arr[i+1] === 'undefined'){
+        		break;
+		    } else {
+		      if(Math.abs(arr[i]['to'] - arr[i+1]['from']) <= threshold){
+		        var x = arr[i];
+		        var y = arr[i+1];
+		        arr[i+1] = {from:x['from'], to: y['to']};
+		        arr.splice(i, 1);
+		        i--;
+		      }
+		    }
+		}
+		return this.removeUnwantedSkips(arr);
+	}
 
-    sendData(data){
 
-    }
+	//removes skips that do not really make any sense, such as skipping back
+	//or something else kinda dumb.
+	removeUnwantedSkips(arr){
+		for(var i = 0; i<arr.length; i++){
+		  	if(arr[i]['from'] - arr[i]['to'] > 0){
+		    	arr.splice(i, 1);
+		    	i--;
+		    }
+	  	}
+		return arr;
+	}
 
     convertTimeToPercent(time){
         let totalTime = parseInt(this.videoElement.duration);
@@ -132,6 +162,10 @@ class YoutubeInstance {
         return ratio * 100; //convert to percent
     }
 
+
+    //Scrape Comments, and send to backend
+    //Backend should compare comments with existing, and only upload new comments
+    //After upload, get all the comments back
     retreiveComments(){
         let commentElements = document.querySelectorAll('yt-formatted-string.ytd-comment-renderer:not(.cheese-blocked)');
         let comments = [];
@@ -155,6 +189,7 @@ class YoutubeInstance {
                             let secondsFromHref = innerMatches[0].replace('s','').replace('t=','');
                             comment.time = secondsFromHref;
                             comment.formattedTime = this.formatSecondsToHHMMSS(secondsFromHref);
+                            comment.html = element.innerHTML;
                         }
 
                         if(Object.keys(comment).length !== 0){
@@ -271,9 +306,6 @@ class MessagePanel{
             htmlContent += `
             <div class = "timestamp-container">
                 <div class = "message-container">
-                    <div class="time-ref" data-time=${comment.time}>
-                        ${comment.formattedTime}
-                    </div>
                     <div class="message">
                         ${comment.text}
                     </div>
