@@ -1,13 +1,11 @@
 //Content.js => Logic for page
-
-
 //TEST CASE Multiple times in comments.
 
-
-class Content{
+class Content {
     constructor(){
         this.url = window.location.href;
         this.instance = null;
+        this.api = new CheeseBlockRequestor();
 
         this.initNewSettings(this.url); // check url, and init setting based on this. 
         this.listenForLocationChange(); // listen for url change (not DOM reload)
@@ -19,28 +17,30 @@ class Content{
         });
     }
 
-
     initNewSettings(url){
         this.url = url;
 
         if(url.includes('youtube')){
             if(!this.instance){
                 console.log('creating new instance');
-                this.instance = new YoutubeInstance();
+                this.instance = new YoutubeInstance(this);
             } else {
                 console.log('updating instance');
                 this.instance.update();
             }
         }
-    }
+    }    
 }
 
-
 class YoutubeInstance {
-    constructor(){
-        this.setElements();
+    constructor(parent){
+        this.parent = parent;
         this.isSkipManifest = true;
-        this.skipManifest = [];
+        this.skipManifest = {'url':this.parent.url,'skip_times':[]};
+        this.skipThreshold = 5;
+
+        this.setElements();
+        this.retreiveData();
 
         if(!this.progressBar || !this.videoElement || !this.controlsContainer){
             console.log('No Elements for Extension');
@@ -62,39 +62,37 @@ class YoutubeInstance {
         }
     }
 
+    //get skips, and comments from the API
+    //Set skip manifest skip times
+    retreiveData(){
+        this.comments = this.parent.api.getComments(this.parent.url).then((data)=>{
+            //do something with the comments here
+        });
+
+
+        this.skipManifest.skip_times = this.parent.api.getTimes(this.parent.url).the((data)=>{
+            //do something with the times here 
+        });
+    }
 
     update(){
+        if(this.skipManifest.skip_times.length > 0){
+            this.uploadSkips(); //upload skips on page change
+        }
+
+        //reset skip
+        //reset comments
+        this.skipManifest = {'url':this.parent.url,'skip_times':[]};
+        this.skipManifest.skip_times = null;
+
+        this.retreiveData();
+        
         //update other things/
         this.setElements();
         if(this.messagePanel){
             this.messagePanel.resetMessages();
         }
     }
-
-
-    // //Get Content from video
-    // async fetchVideo(){
-    //     return new Promise((resolve,reject)=>{
-    //         let xhr = new XMLHttpRequest();
-
-    //         xhr.open('GET', 'https://catfact.ninja/fact', true);
-          
-    //         xhr.onreadystatechange = function() {
-    //           if (xhr.readyState === 4 && xhr.status === 200) {
-    //             // Parse the JSON response
-    //             let response = JSON.parse(xhr.responseText);
-          
-    //             console.log('Cat Fact:', response.fact);
-    //             resolve(response);
-    //           } else{
-    //               reject(`Error : ${xhr.status}`);
-    //           }
-    //         };
-          
-    //         // Send the request
-    //         xhr.send();
-    //     });
-    // }
 
     setupEvents(){
         let lastFiredPosition = 0;
@@ -103,24 +101,32 @@ class YoutubeInstance {
 
             let nextInterval = lastFiredPosition + 1500;
             
-            console.log(currentPosition, lastFiredPosition, nextInterval);
             if (currentPosition > lastFiredPosition && currentPosition >= nextInterval) {
                 lastFiredPosition = nextInterval;
                 this.messagePanel.updateMessages();
             }
         });
 
-        let currentTime = 0;
-        this.videoElement.addEventListener('timeupdate',()=>{
-            currentTime = this.videoElement.currentTime;
-        });
+        if(this.isSkipManifest){
+            let currentTime = 0;
+            this.videoElement.addEventListener('timeupdate',()=>{
+                currentTime = this.videoElement.currentTime;
+            });
+
+            this.progressBar.addEventListener('click',()=>{
+                let seekingToTime = this.videoElement.currentTime;
+                
+                this.skipManifest.skip_times.push({'from':currentTime,'to':seekingToTime});
+            });
+        }
+    }
+
+    uploadSkips(){
+        let filteredSkips = this.skipFinder(this.skipManifest.skip_times,this.skipThreshold)
+        let skipArray = this.transformSkipArray(filteredSkips,this.videoElement.duration);
 
 
-        this.progressBar.addEventListener('click',()=>{
-            let seekingToTime = this.videoElement.currentTime;
-            
-            this.skipManifest.push({'from':currentTime,'to':seekingToTime});
-        });
+        this.parent.api.postTimes(this.parent.url,skipArray);
     }
 
     skipFinder(arr,threshold = 5){
@@ -152,6 +158,28 @@ class YoutubeInstance {
 	  	}
 		return arr;
 	}
+
+
+    transformSkipArray(skips,duration){
+        console.log(skips,duration);
+        let dataArray = [] /// [0,0,0,1,1,1,1,2,2,2,3,3,3,2,2,2,1,1,1,1,1,0,0,0,0]
+        for (let i = 1; i <= duration; i++) {
+            let count = 0;
+            for(let skip of skips){
+                if(skip.from <= i && skip.to >= i){
+                    count++;
+                }
+            }
+            dataArray[i] = count;
+        }
+
+
+        return dataArray;
+    }
+
+    isValueInRange(value, range) {
+        return value >= range.from && value <= range.to;
+    }    
 
     convertTimeToPercent(time){
         let totalTime = parseInt(this.videoElement.duration);
@@ -467,6 +495,103 @@ class MessagePanel{
           element.style.left = newPosition + 'px';
         }
       });
+    }
+}
+
+class CheeseBlockRequestor{
+    getComments(url){
+        return new Promise((resolve,reject)=>{
+            let xhr = new XMLHttpRequest();
+
+            xhr.open('GET', `localhost:7000/comments?url=${encodeURIComponent(url)}`, true);
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    let response = JSON.parse(xhr.responseText);
+                
+                    resolve(response);
+                } else{
+                    reject(`Error : ${xhr.status}`);
+                }
+            };
+            
+            // Send the request
+            xhr.send();
+        });
+    }
+
+    postComments(url, payload) {
+        return new Promise((resolve, reject) => {
+            let xhr = new XMLHttpRequest();
+    
+            xhr.open('POST', 'http://localhost:7000/comments', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+    
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        let response = JSON.parse(xhr.responseText);
+                        resolve(response);
+                    } else {
+                        reject(`Error : ${xhr.status}`);
+                    }
+                }
+            };
+    
+            xhr.onerror = function () {
+                reject('Error occurred during the request.');
+            };
+    
+            xhr.send(JSON.stringify({ url: url, payload: payload }));
+        });
+    }
+    
+
+    getTimes(url){
+        return new Promise((resolve,reject)=>{
+            let xhr = new XMLHttpRequest();
+
+            xhr.open('GET', `localhost:7000/times?url=${encodeURIComponent(url)}`, true);
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    let response = JSON.parse(xhr.responseText);
+                
+                    resolve(response);
+                } else{
+                    reject(`Error : ${xhr.status}`);
+                }
+            };
+            
+            // Send the request
+            xhr.send();
+        });
+    }
+
+    postTimes(url,payload){
+        return new Promise((resolve, reject) => {
+            let xhr = new XMLHttpRequest();
+    
+            xhr.open('POST', 'http://localhost:7000/times', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+    
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        let response = JSON.parse(xhr.responseText);
+                        resolve(response);
+                    } else {
+                        reject(`Error : ${xhr.status}`);
+                    }
+                }
+            };
+    
+            xhr.onerror = function () {
+                reject('Error occurred during the request.');
+            };
+    
+            xhr.send(JSON.stringify({ url: url, payload: payload }));
+        });
     }
 }
 
