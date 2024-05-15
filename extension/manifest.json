@@ -4,7 +4,8 @@
     "version": "1.0",
     "description": "Description of your extension",
     "permissions": [
-      "activeTab"
+      "activeTab",
+      "storage"
     ],
     "action": {
       "default_icon": "icon.png",
@@ -16,7 +17,7 @@
     },
     "content_scripts": [
       {
-        "matches": ["*://www.youtube.com/watch?v=*"],
+        "matches": ["<all_urls>"],
         "js": ["content.js"],
         "css": ["styles.css"]
       }

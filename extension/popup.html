@@ -3,8 +3,171 @@
 <head>
   <title>My Extension Popup</title>
   <script src="popup.js"></script>
+  <style>
+
+    .popup-container{
+      width: 200px;
+    }
+  .header{
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    font-size: 15px;
+    line-height: 20px;
+  }
+
+  .body{
+    display: flex;
+    justify-content: center;
+  }
+  /* Hide the browser's default checkbox */
+.container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+
+
+.switch {
+    display: block;
+  margin: 12px auto;
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+  width: 70px;
+  height: 30px;
+  padding: 3px;
+  background-color: white;
+  -moz-border-radius: 18px;
+  -webkit-border-radius: 18px;
+  border-radius: 18px;
+  cursor: pointer;
+}
+
+.switch-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+}
+
+.switch-label {
+  position: relative;
+  display: block;
+  height: inherit;
+  font-size: 10px;
+  text-transform: uppercase;
+  background:#bdc3c7;
+  -moz-border-radius: inherit;
+  -webkit-border-radius: inherit;
+  border-radius: inherit;
+  -webkit-transition: 0.15s ease-out;
+  -moz-transition: 0.15s ease-out;
+  -o-transition: 0.15s ease-out;
+  transition: 0.15s ease-out;
+  -webkit-transition-property: opacity background border;
+  -moz-transition-property: opacity background border;
+  -o-transition-property: opacity background border;
+  transition-property: opacity background border;
+}
+.switch-label:before, .switch-label:after {
+  position: absolute;
+  top: 50%;
+  margin-top: -.5em;
+  line-height: 1;
+  -webkit-transition: inherit;
+  -moz-transition: inherit;
+  -o-transition: inherit;
+  transition: inherit;
+  font-size:14px;
+}
+.switch-label:before {
+  content: attr(data-off);
+  right: 11px;
+  color: #000;
+}
+.switch-label:after {
+  content: attr(data-on);
+  left: 11px;
+  color: white;
+  opacity: 0;
+}
+.switch-input:checked ~ .switch-label {
+  background: #34495E;
+}
+.switch-input:checked ~ .switch-label:before {
+  opacity: 0;
+}
+.switch-input:checked ~ .switch-label:after {
+  opacity: 1;
+}
+
+.switch-handle {
+  position: absolute;
+  top: 9px;
+  left: 10px;
+  width: 18px;
+  height: 18px;
+  background: white;
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  -webkit-transition: left 0.15s ease-out;
+  -moz-transition: left 0.15s ease-out;
+  -o-transition: left 0.15s ease-out;
+  transition: left 0.15s ease-out;
+}
+  .switch-handle:before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -6px 0 0 -6px;
+    width: 12px;
+    height: 12px;
+    background: #f9f9f9;
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    border-radius: 6px;
+    -moz-box-shadow: inset 0 1px rgba(0, 0, 0, 0.02);
+    -webkit-box-shadow: inset 0 1px rgba(0, 0, 0, 0.02);
+    box-shadow: inset 0 1px rgba(0, 0, 0, 0.02);
+    background-image: -webkit-linear-gradient(top, #eeeeee, white);
+    background-image: -moz-linear-gradient(top, #eeeeee, white);
+    background-image: -o-linear-gradient(top, #eeeeee, white);
+    background-image: linear-gradient(to bottom, #eeeeee, white);
+  }
+
+
+.switch-input:checked ~ .switch-handle {
+  background:#1abc9c;
+  left: 45px;
+  -moz-box-shadow: -1px 1px 5px rgba(0, 0, 0, 0.2);
+  -webkit-box-shadow: -1px 1px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: -1px 1px 5px rgba(0, 0, 0, 0.2);
+}
+
+.switch-input:checked ~ .switch-handle:before{
+  background:#1abc9c;
+}
+.switch-green > .switch-input:checked ~ .switch-label {
+  background: #4fb845;
+}
+</style>
 </head>
 <body>
-  <h1>Hello from My Extension!</h1>
+  <div class="popup-container">
+      <div class="header"><img src="icon.png" width="20px" height="20px" />CheeseBlock</div>
+      <div class="body">
+        <label class="switch">
+            <input type="checkbox" class="switch-input">
+                <span class="switch-label" data-on="On" data-off="Off"></span>
+                <span class="switch-handle"></span>
+        </label>
+      </div>
+  </div>
 </body>
 </html>
