@@ -1,0 +1,184 @@
+<html>
+<head>
+	<script src="accounts.js"></script>
+	<style>
+		body
+		{
+			font-family: system-ui;
+		    font-size:12px;
+		    margin: 0;
+		}
+
+		.form-container {
+	        max-width: 400px;
+	        margin: 20px 20px 20px 50px;
+	        background-color: #fff;
+	        padding: 20px;
+	        border-radius: 8px;
+	        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	    }
+	    .container h2 {
+	        text-align: center;
+	        margin-bottom: 20px;
+	    }
+	    .form-group {
+	        margin-bottom: 20px;
+	    }
+	    .form-group label {
+	        display: block;
+	        margin-bottom: 5px;
+	        font-weight: bold;
+	    }
+	    .form-group input[type="text"],
+	    .form-group input[type="email"] {
+	        width: 100%;
+	        padding: 10px;
+	        font-size: 16px;
+	        border: 1px solid #ccc;
+	        border-radius: 5px;
+	        box-sizing: border-box;
+	    }
+	    .form-group input[type="submit"] {
+	        width: 100%;
+	        padding: 10px;
+	        font-size: 16px;
+	        background-color: #007bff;
+	        color: #fff;
+	        border: none;
+	        border-radius: 5px;
+	        cursor: pointer;
+	    }
+	    .form-group input[type="submit"]:hover {
+	        background-color: #0056b3;
+	    }
+
+		.app-content{
+			height: 90%;
+		}
+		.captcha-user-choice{
+			width: 400px;
+			height: 100px;
+			background: #FFE5B4;
+			text-align: center;
+			margin: auto;
+			border-radius: 10px;
+			border: 1px solid orange;
+			cursor: pointer;
+			display: flex;
+		}
+
+		.captcha-user-choice > svg{
+			align-self:center;
+			padding: 20px;
+		}
+
+		.button-text{
+			align-self: center;
+		    width: 100%;
+		    font-family: system-ui;
+		    font-weight: 300;
+		    line-height: 100px;
+		    font-size: 18px;
+		    border-left: 1px solid black;
+		    height: 100%;
+		}
+
+		.choice-container{
+			display: flex;
+			top: 30%;
+			position: relative;
+			transform: translate(0,-50%);
+		    width: min-content;
+		    gap: 30px;
+		    margin: auto;
+		}
+
+		.captcha-user-choice:hover{
+			background: grey;
+		}
+
+		.title-container{
+			width: 100%;
+			font-family: system-ui;
+			justify-content: left;
+		    font-weight: 300;
+		    display: flex;
+		    line-height: 100px;
+		    gap: 10px;
+		    background: lightblue;
+		    height: 100px;
+		}
+
+		.app-title{
+			font-family: system-ui;
+			font-size: 18px;
+		}
+
+		.title-container > svg{
+			align-self:center;
+			margin-left: 30px;
+		}
+
+		.title-text{
+			font-size: 18px;
+		}
+
+		.title-subject{
+			position: relative;
+			text-align: center;
+			font-size: 25px;
+			font-weight: 300;
+			width: 100%;
+			top: 50px;
+/*			right: 20px;*/
+		}
+
+		.user-created-message{
+			position: absolute;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			font-size: 18px;
+			font-weight: 300;
+			width: 100%;
+			min-height: 150px;
+			border-radius: 10px;
+			background: #FFE5B4;
+			color: black;
+			gap:20px;
+		}
+
+		.user-created-message > svg {
+			height:50px;
+		}
+	</style>
+</head>
+
+	<body>
+		<div class="title-container">
+			<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 512 512" version="1.1"><path d="M 187.135 133.086 C 188.005 134.414, 197.550 149.062, 208.348 165.638 L 227.980 195.776 228.240 242.061 L 228.500 288.347 255.750 297.410 L 283 306.473 283 347.641 L 283 388.809 304.083 414.155 C 315.678 428.095, 326.028 440.387, 327.083 441.472 C 328.973 443.417, 328.999 442.180, 328.963 353.972 L 328.926 264.500 306.400 238.521 C 294.011 224.232, 284.267 212.411, 284.746 212.251 C 285.225 212.092, 313.040 215.569, 346.558 219.978 C 380.076 224.387, 408.288 227.996, 409.250 227.997 C 410.870 228, 411 226.144, 411 203 C 411 189.250, 410.823 178, 410.607 178 C 410.391 178, 394.079 174.600, 374.357 170.445 C 354.636 166.290, 305.200 155.918, 264.500 147.397 C 223.800 138.875, 189.387 131.626, 188.027 131.287 C 185.618 130.687, 185.595 130.733, 187.135 133.086" stroke="none" fill="#fbe189" fill-rule="evenodd"/><path d="M 205 68.607 C 138.227 71.302, 79.690 81.549, 40.041 97.483 C 20.879 105.185, 8.918 112.957, 3.250 121.390 L -0 126.226 -0 214 L 0 301.774 3.250 306.609 C 13.231 321.458, 43.380 336.005, 86.615 346.832 C 123.853 356.158, 172.032 361.966, 212.341 361.990 L 229.183 362 228.464 278.750 L 227.746 195.500 206.936 163.520 C 195.491 145.931, 186.236 131.430, 186.370 131.296 C 186.505 131.162, 205.939 135.104, 229.557 140.058 C 303.649 155.595, 401.298 176.096, 406.250 177.152 L 411 178.166 411 203.083 C 411 226.148, 410.870 228, 409.250 227.997 C 408.288 227.996, 380.076 224.387, 346.558 219.978 C 313.040 215.569, 285.225 212.092, 284.746 212.251 C 284.267 212.411, 294.011 224.232, 306.400 238.521 L 328.926 264.500 328.963 354.310 L 329 444.120 340.750 443.573 C 347.212 443.271, 359.475 442.769, 368 442.456 C 417.948 440.624, 471.806 433.063, 503.628 423.417 L 511.755 420.954 512.447 300.727 C 512.828 234.602, 512.988 167.900, 512.803 152.500 C 512.618 137.100, 512.362 150.712, 512.234 182.750 C 512.008 239.011, 511.936 241, 510.120 241 C 509.086 241, 496.374 239.425, 481.870 237.501 C 467.367 235.576, 455.387 234.001, 455.250 234.001 C 455.113 234, 455 210.031, 455 180.735 L 455 127.469 452.633 122.985 C 439.992 99.034, 363.766 76.126, 276.500 70.051 C 260.706 68.952, 217.883 68.087, 205 68.607 M 0.479 214 C 0.479 262.675, 0.601 282.588, 0.750 258.250 C 0.899 233.913, 0.899 194.088, 0.750 169.750 C 0.601 145.413, 0.479 165.325, 0.479 214" stroke="none" fill="#f1ba47" fill-rule="evenodd"/>
+			</svg>
+            <div class="title-text">
+           		 CheeseBlock
+        	</div>
+		</div>
+		<div class="app-content">
+			<div class="title-subject">
+           		 Choose your Account
+        	</div>
+			<div class="choice-container" id="choice-container">
+				<!-- <div class="app-title" id="app-title">
+					Create an Account
+				</div> -->
+				<div class="captcha-user-choice" id="captcha-user-choice">
+						<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="60px" height="60px" viewBox="0 0 48 48" enable-background="new 0 0 48 48" id="Layer_3" version="1.1" xml:space="preserve"><path d="M32.615,10.883V8.615C32.615,3.857,28.759,0,24,0c-4.758,0-8.615,3.857-8.615,8.615v2.268H12.33V28h23.34  V10.883H32.615z M26.432,22.715h-4.734l1.175-2.963c-0.831-0.415-1.406-1.265-1.406-2.257c0-1.4,1.134-2.535,2.534-2.535  c1.4,0,2.533,1.135,2.533,2.535c0,0.98-0.561,1.82-1.375,2.243L26.432,22.715z M19.012,10.883V8.615  c0-2.754,2.233-4.988,4.988-4.988c2.754,0,4.988,2.233,4.988,4.988v2.268H19.012z" fill="#241F20"/><path d="M0,32v16h48V32H0z M44,44H4v-8h40V44z" fill="#241F20"/><rect fill="#241F20" height="3" width="6" x="11" y="38.5"/><rect fill="#241F20" height="3" width="6" x="21" y="38.5"/><rect fill="#241F20" height="3" width="6" x="31" y="38.5"/></svg>
+						<div class="button-text">Continue with Captchas</div>
+				</div>
+				<!-- <div class="captcha-user-choice" id="user-choice">
+						<svg xmlns="http://www.w3.org/2000/svg" width="60px" height="60px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+						<div class="button-text">Sign In / Create Account</div>
+				</div> -->
+			</div>
+		</div>
+	</body>
+</html>
