@@ -1,0 +1,27 @@
+
+
+
+.cb-panel{
+    max-height:300px;
+    width:300px;
+    padding:10px;
+    border:1px solid grey;
+}
+
+.cb-comment{
+    display:flex;
+    flex-direction:row;
+    gap:10px;
+    padding:10px;
+}
+
+.cb-comment-info{
+    background:orange;
+    color:white;
+    padding:5px;
+    margin-bottom:auto;
+    border-radius:10px;
+}
+
+  
+  
